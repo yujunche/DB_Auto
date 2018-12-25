@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    {% include "load_bootstrap.html" %}
+</head>
+<body style="background-image: url(/static/img/7.jpg)">
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand">当前登陆用户：{{ current_user }}</a>
+        </div>
+        <div>
+            <form class="navbar-form navbar-left" role="search" action="/dbop/logout" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-default">注销</button>
+            </form>
+        </div>
+    </div>
+</nav>
+<h1 style="display: inline-block;margin-left: 30%;margin-top: 50px;margin-bottom: 50px;color: white">
+    目前系统只支持DML语言中的增删改操作</h1>
+
+
+<!-- ajax提交 -->
+
+{% csrf_token %}
+<div class="form-group" style="width: 50%;height: 50px;float: left">
+    <div style="width:15%;font-size: 30px;margin-left: 50%;float: left;color: white">选择用户</div>
+    <div style="font-size: 20px;height:30px;float: left;width: 20%;margin-left: 0">
+        <select id="select_priv" name="sel_priv">
+            {% for row in user_priv %}
+                {% if row == sel_priv %}
+                    <option value={{ row }} selected="selected" }>{{ row }}</option>
+                {% else %}
+                    <option value={{ row }}>{{ row }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+    <div style="width:15%;height:50px;float: left;color: white;">
+        <input id="req_no" type="text" class="form-control" placeholder="需求号或缺陷号"/>
+    </div>
+</div>
+
+<div class="form-group" style="width: 40%;height: 50px;float: right;">
+    <input class="btn btn-primary" id="dbexecute" type="button" value="执行" data-loading-text="Loading..."
+           style="margin-left: 0"/>
+</div>
+
+<div class="form-group" style="width: 50%;margin: auto;margin-top: 30px">
+        <textarea id="input_sql" class="form-control" rows="10" name="input_sql" style="margin-top: 20px "
+                  placeholder="输入需要执行的sql语句">{{ input_sql }}</textarea>
+</div>
+
+<br>
+<br>
+<br>
+<br>
+
+<div style="display: inline-block;height:50px;width: 51%;color: white;font-size: 30px;float: left;text-align: right">
+    结果输出
+</div>
+<div style="display: inline-block;height: 50px;width: 40%;color: white;font-size: 30px;float: right">
+    <input id="clean_data" class="btn btn-info" style="display:inline-block;background-color: #3e8f3e;float:left;"
+           type="submit" value="清空内容"/>
+</div>
+<div id="returndata"
+     style="height: 200px;width: 50%;overflow: auto ;border: solid 1px white;margin: auto;font-size: 20px">
+    {#    {% for db_record in db_record %}#}
+    {#        <p style="color: red">{{ db_record }}</p>#}
+    {#    {% endfor %}#}
+
+</div>
+<div style="height:50px;width: 50%;float: left;margin-top: 20px">
+    <input id="dbcommit" class="btn btn-info" data-loading-text="Loading..."
+           style="display:inline-block;background-color: #d9534f ;float:right;margin-right: 10px" type="button"
+           value="提交"/>
+</div>
+<div style="height:50px;width: 50%;float: right;margin-top: 20px">
+    <input id="dbrollback" class="btn btn-danger" data-loading-text="Loading..."
+           style="display:inline-block;float:left;background-color: #ac2925;margin-left: 10px" type="button"
+           value="回滚"/>
+</div>
+
+<script>
+    $(function () {
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader('X-CSRFtoken', $.cookie('csrftoken'));
+            }
+        })
+    })
+    $('#dbcommit').click(function () {
+        $.ajax({
+            url: '/dbop/usercommit',
+            type: 'POST',
+            data: {'sel_priv': $('#select_priv').val(), 'req_no': $('#req_no').val()},
+            // headers: {'X-CSRFtoken': $.cookie('csrftoken')},
+            success: function (data) {
+                alert(data)
+            }
+        })
+    })
+    $('#dbrollback').click(function () {
+        $.ajax({
+            url: '/dbop/dbrollback',
+            type: 'POST',
+            data: {'sel_priv': $('#select_priv').val()},
+            // headers: {'X-CSRFtoken': $.cookie('csrftoken')},
+            success: function (data) {
+                alert(data)
+            }
+        })
+    })
+    $('#dbexecute').click(function () {
+        var btn = $(this).button('loading')
+        $.ajax({
+            url: '/dbop/userexec',
+            type: 'POST',
+            data: {'sel_priv': $('#select_priv').val(), 'input_sql': $('#input_sql').val()},
+            success: function (data) {
+                var data = JSON.parse(data);
+                for (var returndata in data) {
+                    $('#returndata').append('<p style="color: red">' + data[returndata] + '</p>')
+                }
+            }
+        })
+        btn.button('reset')
+    })
+    $('#clean_data').click(function () {
+        $('#returndata').children().remove()
+    })
+</script>
+</body>
+</html>

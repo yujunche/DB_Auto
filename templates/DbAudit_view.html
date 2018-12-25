@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    {% include "load_bootstrap.html" %}
+</head>
+<body style="background-image: url(/static/img/1.jpg)">
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand">当前登陆用户：{{ current_user }}</a>
+        </div>
+        <div>
+            <form class="navbar-form navbar-left" role="search" action="/dbop/logout" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-default">注销</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="alert alert-warning" role="alert" style="font-size: 30px">待审核列表</div>
+
+<div style="width: 90%;text-align: left">
+    <table class="table  table-hover" style="font-size: 17px">
+        <tr>
+            <td>id</td>
+            <td>exec_user</td>
+            <td>req_no</td>
+            <!--
+            <td>file_dir</td>
+            -->
+            <td>state</td>
+            <td>DescMessage</td>
+            <td>db_user</td>
+            <td>stamp</td>
+        </tr>
+        {% for msg in Admsg %}
+            <tr>
+                <td>{{ msg.id }}</td>
+                <td>{{ msg.exec_user }}</td>
+                <td>{{ msg.req_no }}</td>
+                <!--
+                <td>{{ msg.file_dir }}</td>
+                -->
+                <td>{{ msg.state }}</td>
+                <td>{{ msg.DescMessage }}</td>
+                <td>{{ msg.db_user }}</td>
+                <td>{{ msg.stamp }}</td>
+                <td>
+                    <input type="button" class="btn btn-primary" data-toggle="modal" data-target="#ViewSql"
+                           value="查看SQL" \>
+                </td>
+                <td>
+                    <input type="button" class="btn btn-success" data-toggle="modal" data-target="#ViewResult" data-loading-text="Loading..."
+                           value="审核通过" \>
+                </td>
+                <td>
+                    <input type="button" class="btn btn-danger" AuAdNopass="Nopass" value="审核不通过" \>
+                </td>
+
+            </tr>
+        {% endfor %}
+
+        <!-- SqlModal -->
+        <div class="modal fade" id="ViewSql" tabindex="-1" role="dialog" aria-labelledby="SqlModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="SqlModal">SqlText</h4>
+                    </div>
+                    <div id="SqlShow" style="font-size: 20px" class="modal-body">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ResultModal -->
+        <div class="modal fade" id="ViewResult" tabindex="-1" role="dialog" aria-labelledby="ResultModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="ResultModal">返回结果</h4>
+                    </div>
+                    <div id="ResultShow" style="font-size: 20px" class="modal-body">
+
+                    </div>
+                    <input type="button" class="btn btn-info" AuAdCommit="Commit"  value="提交" \>
+                    <input type="button" class="btn btn-info" AuAdRollback="Rollback" value="回滚" \>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </table>
+</div>
+
+<script>
+    $(function () {
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader('X-CSRFtoken', $.cookie('csrftoken'));
+            }
+        })
+    })
+    $('[data-target="#ViewSql"]').click(function () {
+        $.ajax({
+            url: '/dbaudit/AUViewSql',
+            method: 'POST',
+            data: {'msg_id': $(this).parent().siblings().eq(0).text()},
+            success: function (data) {
+                var RtSql = JSON.parse(data)
+                for (var returndata in RtSql) {
+                    $('#SqlShow').append('<p>' + RtSql[returndata] + '</p>')
+                }
+            }
+        })
+    })
+    $('[data-target="#ViewResult"]').click(function () {
+        var Aumsg = $(this).parent().siblings().eq(0).text()
+        $('#ResultModal').after('<h5 class="modal-title" id="Aumsg_commit" style="display:none">'+ Aumsg +'</h5>')
+        $.ajax({
+            url: '/dbaudit/AUAdPass',
+            method: 'POST',
+            data: {'msg_id': $(this).parent().siblings().eq(0).text()},
+            success: function (data) {
+                var RtDa = JSON.parse(data)
+                for (var returndata in RtDa) {
+                    $('#ResultShow').append('<p style="color: red">' + RtDa[returndata] + '</p>')
+                }
+            }
+        })
+    })
+    $('[AuAdNopass="Nopass"]').click(function () {
+        $.ajax({
+            url: '/dbaudit/AUAdNopass',
+            method: 'POST',
+            data: {'msg_id': $(this).parent().siblings().eq(0).text()},
+            success: function (data) {
+                alert(data)
+                location.reload()
+            }
+        })
+    })
+    $('[AuAdCommit="Commit"]').click(function () {
+        $.ajax({
+            url: '/dbaudit/AUAdCommit',
+            method: 'POST',
+            data: {'msg_id': $('#Aumsg_commit').text()},
+            success: function (data) {
+                alert(data)
+                //location.reload()
+            }
+        })
+    })
+    $('[AuAdRollback="Rollback"]').click(function () {
+        $.ajax({
+            url: '/dbaudit/AUAdRollback',
+            method: 'POST',
+            data: {'msg_id': $('#Aumsg_commit').text()},
+            success: function (data) {
+                alert(data)
+                //location.reload()
+            }
+        })
+    })
+    $('[data-dismiss="modal"]').click(function () {
+        location.reload()
+    })
+</script>
+</body>
+</html>

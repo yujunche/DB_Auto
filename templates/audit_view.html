@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    {% include "load_bootstrap.html" %}
+</head>
+<body style="background-image: url(/static/img/3.jpg)">
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand">当前登陆用户：{{ current_user }}</a>
+        </div>
+        <div>
+            <form class="navbar-form navbar-left" role="search" action="/dbop/logout" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-default">注销</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div style="font-size: 30px;height:50px;width: 30%;margin-top: 100px;display: inline-block;float: left">
+    <select style="width: 100px;height: 40px;float: right" id="select_user" name="db_user">
+        {% for row in db_user %}
+            <option value={{ row }}>{{ row }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="form-group" style="color: white;width: 20%;height: 50px;margin-top: 100px;display: inline-block;float: left">
+    <input id="audit_req" type="text" style="width: 150px;height: 40px;margin-left: 100px" class="form-control" placeholder="需求号或缺陷号"/>
+</div>
+<div class="form-group" style="color: white;width: 50%;height: 50px;margin-top: 100px;display: inline-block;float: right" >
+    <input id="query_desc" type="text" style="width: 600px;height: 40px" class="form-control" maxlength="40" placeholder="问题描述"/>
+</div>
+<div class="form-group" style="width: 70%;height: 50%;margin: auto" >
+    <textarea id="audit_sql" class="form-control" rows="20" placeholder="输入需要提交审批的sql语句"></textarea>
+</div>
+<div class="form-group" style="margin-top: 20px;text-align: center">
+    <input class="btn btn-primary" id="commit_audit" type="button" data-loading-text="Loading..." value="提交审核"/>
+</div>
+</body>
+
+<script>
+    $(function () {
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader('X-CSRFtoken', $.cookie('csrftoken'));
+            }
+        })
+    })
+    $('#commit_audit').click(function () {
+        var Judge = confirm("确认提交?");
+        if (Judge == true) {
+            if ($('#select_user').val() == '' || $('#audit_req').val() == '' || $('#audit_sql').val() == '' || $('#query_desc').val() =='' ){
+                alert('所有参数不能为空！')
+            }
+            else {
+                $.ajax({
+                    url: '/dbaudit/commitaudit',
+                    method: 'POST',
+                    data: {
+                        'select_user': $('#select_user').val(),
+                        'audit_req': $('#audit_req').val(),
+                        'audit_sql': $('#audit_sql').val(),
+                        'query_desc':$('#query_desc').val(),
+                    },
+                    success: function (data) {
+                        alert(data)
+                    }
+                })
+            }
+        }
+        else {
+            location.reload()
+        }
+    })
+</script>
+
+</html>
