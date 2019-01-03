@@ -24,6 +24,11 @@ def login(request):
             response.set_cookie('adminusername',user)
             return  response
 
+def logout(request):
+    request.session.clear()
+    return redirect('/bkmanage/login')
+
+
 def user_info(request):
     admin_user = request.COOKIES.get('adminusername')
     if admin_user != None:

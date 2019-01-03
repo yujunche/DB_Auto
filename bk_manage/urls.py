@@ -21,6 +21,7 @@ from . import views
 
 urlpatterns = [
     url(r'^login', views.login),
+    url(r'^logout',views.logout),
     url(r'^userinfo',views.user_info),
     url(r'^BmUserDel',views.BmUser_Del),
 ]
