@@ -5,7 +5,7 @@
     <title>Title</title>
     {% include "load_bootstrap.html" %}
 </head>
-<body>
+<body style="background-image: url(/static/img/5.jpg)">
 
 <nav class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
@@ -21,18 +21,33 @@
     </div>
 </nav>
 
-<ul id="myTab" class="nav nav-tabs">
-    <li class="active">
-        <a href="#userinfo" data-toggle="tab" style="font-size: 20px">用户信息管理</a>
+<ul id="BkMgTab" class="nav nav-tabs">
+
+    <li class="dropdown" style="font-size: 20px">
+        <a href="#" id="UserInfoMg" class="dropdown-toggle" data-toggle="dropdown">用户信息管理
+            <b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="UserInfoMg">
+            <li><a href="#userinfo" tabindex="-1" data-toggle="tab">用户信息</a></li>
+            <li><a href="#audituserinfo" tabindex="-1" data-toggle="tab">审计用户信息</a></li>
+        </ul>
     </li>
-    <li>
-        <a href="#dbinfo" data-toggle="tab" style="font-size: 20px">数据库信息管理</a>
+
+    <li class="dropdown" style="font-size: 20px">
+        <a href="#" id="DbInfoMg" class="dropdown-toggle" data-toggle="dropdown">数据库信息管理
+            <b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="DbInfoMg">
+            <li><a href="#dbinfo" tabindex="-1" data-toggle="tab">数据库信息</a></li>
+            <li><a href="#dbuserinfo" tabindex="-1" data-toggle="tab">数据库用户信息</a></li>
+        </ul>
     </li>
 </ul>
 
-<div id="myTabContent" class="tab-content">
+<div id="BkMgTab" class="tab-content">
     <div class="tab-pane fade in active" id="userinfo">
         <br>
+        <h3>用户信息</h3>
         <br>
         <form action="/bkmanage/userinfo" method="post">
             {% csrf_token %}
@@ -42,7 +57,7 @@
             <input type="submit" value="添加"/>
         </form>
         <p style="color: red">{{ error_msg }}</p>
-        <div style="width: 50%;border: solid black 1px;font-size: 20px">
+        <div>
             <table class="table  table-hover">
                 <tr>
                     <td>序号</td>
@@ -67,8 +82,90 @@
             </table>
         </div>
     </div>
+    <div class="tab-pane fade" id="audituserinfo">
+        <br>
+        <h3>审计用户信息</h3>
+        <br>
+        <div>
+            <table class="table  table-hover">
+                <tr>
+                    <td>用户名</td>
+                    <td>密码</td>
+                    <td>权限</td>
+                </tr>
+                {% for audituserinfo in audit_userinfo %}
+                    <tr>
+                        <td>{{ audituserinfo.username }}</td>
+                        <td>{{ audituserinfo.password }}</td>
+                        <td>{{ audituserinfo.audit_priv }}</td>
+                        <td>
+                            <input type="button" class="btn btn-primary" BkMAudUserModify="BkMAudUserModify" value="编辑"/>
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-danger" BkMAudUserDel="BkMAudUserDel" value="删除"/>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
     <div class="tab-pane fade" id="dbinfo">
-
+        <br>
+        <h3>数据库信息</h3>
+        <br>
+        <div>
+            <table class="table  table-hover">
+                <tr>
+                    <td>序号</td>
+                    <td>IP</td>
+                    <td>PORT</td>
+                    <td>SID</td>
+                    <td>Info</td>
+                </tr>
+                {% for dbinfo in db_info %}
+                    <tr>
+                        <td>{{ dbinfo.id }}</td>
+                        <td>{{ dbinfo.env_ip }}</td>
+                        <td>{{ dbinfo.env_port }}</td>
+                        <td>{{ dbinfo.env_sid }}</td>
+                        <td>{{ dbinfo.env_info }}</td>
+                        <td>
+                            <input type="button" class="btn btn-primary" BkMDbInfoModify="BkMDbInfoModify" value="编辑"/>
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-danger" BkMDbInfoDel="BkMDbInfoDel" value="删除"/>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="dbuserinfo">
+        <br>
+        <h3>数据库用户信息</h3>
+        <br>
+        <div>
+            <table class="table  table-hover">
+                <tr>
+                    <td>ID</td>
+                    <td>用户名</td>
+                    <td>密码</td>
+                </tr>
+                {% for dbuserinfo in db_user_info %}
+                    <tr>
+                        <td>{{ dbuserinfo.id }}</td>
+                        <td>{{ dbuserinfo.username }}</td>
+                        <td>{{ dbuserinfo.password }}</td>
+                        <td>
+                            <input type="button" class="btn btn-primary" BkMAudUserModify="BkMAudUserModify" value="编辑"/>
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-danger" BkMAudUserDel="BkMAudUserDel" value="删除"/>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
     </div>
 </div>
 </body>

@@ -6,6 +6,7 @@ from django.shortcuts import HttpResponse
 from django.shortcuts import render
 from django.shortcuts import redirect
 from . import models
+from dbaudit import models as Aumodels
 import os
 
 def login(request):
@@ -34,9 +35,12 @@ def user_info(request):
     if admin_user != None:
         url_dir = request.path_info
         all_userinfo = models.userinfo.objects.all()
+        audit_userinfo = Aumodels.aduit_userinfo.objects.all()
+        db_info = models.oracle_db_info.objects.all()
+        db_user_info = models.oracle_db_user_info.objects.all()
         error_msg = ""
         if request.method == "GET":
-            return render(request,'bkmanage_view.html',{'all_userinfo':all_userinfo,'error_msg':error_msg})
+            return render(request,'bkmanage_view.html',{'all_userinfo':all_userinfo,'error_msg':error_msg,'audit_userinfo':audit_userinfo,'db_info':db_info,'db_user_info':db_user_info})
         elif request.method == "POST":
             if request.POST.get('username',None) == '' or request.POST.get('password',None) =='' or request.POST.get('priv',None) == '':
                 error_msg = "用户信息不完整"
