@@ -16,41 +16,36 @@ def generate_random_str(randomlength=16):
 
 
 def judge_op_type(input_sql_type, input_sql):
-    if input_sql_type.lower() == 'dml':
-        if input_sql.lower().find('alter') != -1 or input_sql.lower().find('create') != -1 or input_sql.lower().find(
-                'drop') != -1:
-            print('输入的数据库操作语言有误，请检查输入的sql。')
-            exit()
+    if input_sql_type.lower() == 'noeaa' :
+        if input_sql.lower().find('select') != -1 or input_sql.lower().find('delete') != -1 or input_sql.lower().find('create') != -1 or input_sql.lower().find('alter') != -1 \
+                or input_sql.lower().find('drop') != -1 or input_sql.lower().find('grant') != -1 or input_sql.lower().find('deny') != -1 or input_sql.lower().find('revoke') != -1 \
+                or input_sql.lower().find('comment') != -1:
+            return 1
         else:
-            pass
-    elif input_sql_type.lower() == 'ddl':
-        if input_sql.lower().find('update') != -1 or input_sql.lower().find('insert') != -1 or input_sql.lower().find(
-                'delete') != -1:
-            print('输入的数据库操作语言有误，请检查输入的sql。')
-            exit()
-        else:
-            pass
-    else:
-        print('请输入正确的数据库操作语言dml/ddl。')
-        exit()
+            return 0
+    elif input_sql_type.lower() == 'all' :
+        return 0
 
 
 def execute_oracle_file(**kwargs):
-    # judge_op_type(kwargs['input_sql_type'],kwargs['input_sql'])
-    # print('exec',kwargs['input_sql'])
-    sql_batch = kwargs['input_sql'].rstrip().rstrip(';').split(';')
-    db_exec = db_exec_map[kwargs['user']][kwargs['sel_priv']]
-    db_record = ''
-    for bath_exec in sql_batch:
-        try:
-            db_msg = db_exec.exec_oracle(bath_exec)
-        except cx_Oracle.DatabaseError as orcl_error_msg:
-            db_msg = str(orcl_error_msg) + ';' + '\n'
-        else:
-            # bath_exec = '\n' + bath_exec
-            tmp_file_write(kwargs['tmpfilename'], bath_exec)
-        db_record = db_record + db_msg
-    return db_record
+    exec_status = judge_op_type(kwargs['input_sql_type'],kwargs['input_sql'])
+    if exec_status == 1:
+        return '输入的数据库操作语言有误，请检查输入的sql。'
+    elif exec_status == 0:
+        # print('exec',kwargs['input_sql'])
+        sql_batch = kwargs['input_sql'].rstrip().rstrip(';').split(';')
+        db_exec = db_exec_map[kwargs['user']][kwargs['sel_priv']]
+        db_record = ''
+        for bath_exec in sql_batch:
+            try:
+                db_msg = db_exec.exec_oracle(bath_exec)
+            except cx_Oracle.DatabaseError as orcl_error_msg:
+                db_msg = str(orcl_error_msg) + ';' + '\n'
+            else:
+                # bath_exec = '\n' + bath_exec
+                tmp_file_write(kwargs['tmpfilename'], bath_exec)
+            db_record = db_record + db_msg
+        return db_record
 
 
 def commit_oracle_file(**kwargs):

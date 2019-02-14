@@ -74,7 +74,9 @@ def user_exec(request):
             input_sql = request.POST.get('input_sql',None)
             #print('view',input_sql)
             tmpfilename = request.session.get('tmpfilename', None)
-            db_record = DbexecMethod.execute_oracle_file(input_sql=input_sql,user=user,sel_priv=sel_priv,tmpfilename=tmpfilename)
+            ##input_sql_type判断执行sql类型
+            input_sql_type = 'noeaa'
+            db_record = DbexecMethod.execute_oracle_file(input_sql=input_sql,user=user,sel_priv=sel_priv,tmpfilename=tmpfilename,input_sql_type=input_sql_type)
             # return render(request, 'user_view.html', {'user_priv': priv, 'sel_priv': sel_priv, 'input_sql': input_sql,
             #                                           'db_record': db_record.split(';'), 'current_user': user})
             db_record = db_record.split(';')

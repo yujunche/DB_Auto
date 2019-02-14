@@ -42,13 +42,14 @@ def user_info(request):
         if request.method == "GET":
             return render(request,'bkmanage_view.html',{'all_userinfo':all_userinfo,'error_msg':error_msg,'audit_userinfo':audit_userinfo,'db_info':db_info,'db_user_info':db_user_info})
         elif request.method == "POST":
-            if request.POST.get('username',None) == '' or request.POST.get('password',None) =='' or request.POST.get('priv',None) == '':
-                error_msg = "用户信息不完整"
-                return render(request, 'bkmanage_view.html', { 'all_userinfo': all_userinfo,'error_msg':error_msg})
+            username = request.POST.get('username',None)
+            password = request.POST.get('password',None)
+            priv = request.POST.get('priv',None)
+            if username == '' or password == '' or priv == '':
+                return HttpResponse('用户信息不完整')
             else:
-                models.userinfo.objects.create(username=request.POST.get('username',None),password=request.POST.get('password',None),user_priv=request.POST.get('priv',None))
-                all_userinfo = models.userinfo.objects.all()
-                return render(request, 'bkmanage_view.html',{ 'all_userinfo': all_userinfo, 'error_msg': error_msg})
+                models.userinfo.objects.create(username=username,password=password,user_priv=priv)
+                return HttpResponse('添加完成')
     else:
         return redirect('/bkmanage/login')
 
@@ -59,5 +60,20 @@ def BmUser_Del(request):
             userid = request.POST.get('userid',None)
             models.userinfo.objects.filter(userid=userid).delete()
             return HttpResponse('')
+    else:
+        return redirect('/bkmanage/login')
+
+def AuditUser_add(request):
+    admin_user = request.COOKIES.get('adminusername')
+    if admin_user != None:
+        if request.method == "POST":
+            Auditusername = request.POST.get('username',None)
+            Auditpassword = request.POST.get('password',None)
+            if Auditusername == '' or Auditpassword == '' :
+                return HttpResponse('用户信息不完整')
+            else:
+                Auditpriv = models.userinfo.objects.filter(username='all').get().user_priv
+                Aumodels.aduit_userinfo.objects.create(username=Auditpassword,password=Auditpassword,audit_priv=Auditpriv)
+                return HttpResponse('审计用户添加完成')
     else:
         return redirect('/bkmanage/login')

@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^logout',views.logout),
     url(r'^userinfo',views.user_info),
     url(r'^BmUserDel',views.BmUser_Del),
+    url(r'^AudtiUserAdd',views.AuditUser_add),
 ]

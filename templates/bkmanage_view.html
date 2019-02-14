@@ -49,14 +49,13 @@
         <br>
         <h3>用户信息</h3>
         <br>
-        <form action="/bkmanage/userinfo" method="post">
-            {% csrf_token %}
+        <div>
             <input type="text" name="username" placeholder="用户名"/>
             <input type="text" name="password" placeholder="密码"/>
             <input type="text" name="priv" placeholder="权限"/>
-            <input type="submit" value="添加"/>
-        </form>
-        <p style="color: red">{{ error_msg }}</p>
+            <input type="submit"  id="LogUserAdd" value="添加"/>
+        </div>
+        <br>
         <div>
             <table class="table  table-hover">
                 <tr>
@@ -85,6 +84,12 @@
     <div class="tab-pane fade" id="audituserinfo">
         <br>
         <h3>审计用户信息</h3>
+        <br>
+        <div>
+            <input type="text" name="username" placeholder="用户名"/>
+            <input type="text" name="password" placeholder="密码"/>
+            <input type="submit"  id="AuditUserAdd" value="添加"/>
+        </div>
         <br>
         <div>
             <table class="table  table-hover">
@@ -185,6 +190,28 @@
             data: {'userid': $(this).parent().siblings().eq(0).text()},
             success: function (data) {
                 location.reload()
+            }
+        })
+    })
+    $('#LogUserAdd').click(function () {
+        $.ajax({
+            url: '/bkmanage/userinfo',
+            method: 'POST',
+            data: {'username':$(this).siblings().eq(0).val(),'password':$(this).siblings().eq(1).val(),'priv':$(this).siblings().eq(2).val()},
+            success:function (data) {
+                alert(data);
+                location.reload();
+            }
+        })
+    })
+    $('#AuditUserAdd').click(function () {
+        $.ajax({
+            url: '/bkmanage/AudtiUserAdd',
+            method: 'POST',
+            data: {'username':$(this).siblings().eq(0).val(),'password':$(this).siblings().eq(1).val()},
+            success:function (data) {
+                alert(data);
+                location.reload();
             }
         })
     })
