@@ -38,8 +38,8 @@ def user_login(request):
                 op_db_file_module.db_exec_map[user] = privdir
                 request.session['username'] = user
                 tmpfilename = DbexecMethod.generate_random_str(16)
+                tmpfilename = op_db_file_module.tmp_file_create(tmpfilename)
                 request.session['tmpfilename'] = tmpfilename
-                op_db_file_module.tmp_file_create(tmpfilename)
                 request.session.set_expiry(0)
                 return response
     else:

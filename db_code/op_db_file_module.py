@@ -13,10 +13,10 @@ oracle_env_port = models.oracle_db_info.objects.filter(env_info=env_info).get().
 oracle_env_sid = models.oracle_db_info.objects.filter(env_info=env_info).get().env_sid
 
 
-BaseTmpFileD = os.getcwd() + os.sep + 'tmpfile' + os.sep + time.strftime("%Y%m%d")
-BaseFileD = os.getcwd() + os.sep + 'file' + os.sep + time.strftime("%Y%m%d")
-BaseAuditFileD = os.getcwd() + os.sep + 'AuditFile' + os.sep + time.strftime("%Y%m%d")
-BaseAuditRecordFileD = os.getcwd() + os.sep + 'AuditResultFile' + os.sep + time.strftime("%Y%m%d")
+BaseTmpFileD = os.getcwd() + os.sep + 'tmpfile'
+BaseFileD = os.getcwd() + os.sep + 'file'
+BaseAuditFileD = os.getcwd() + os.sep + 'AuditFile'
+BaseAuditRecordFileD = os.getcwd() + os.sep + 'AuditResultFile'
 
 
 class Oracle_op(object):
@@ -176,22 +176,24 @@ class mysql_op(object):
 
 
 def tmp_file_create(tmp_file_name):
-    tmp_file = BaseTmpFileD + os.sep + tmp_file_name
-    if os.path.isdir(BaseTmpFileD):
+    tmp_dir = BaseTmpFileD + os.sep + time.strftime("%Y%m%d")
+    tmp_file = tmp_dir + os.sep + tmp_file_name
+    if os.path.isdir(tmp_dir):
         pass
     else:
-        os.makedirs(BaseTmpFileD)
+        os.makedirs(tmp_dir)
     if os.path.isfile(tmp_file):
         pass
     else:
         f = open('%s' % tmp_file, 'w', encoding="utf-8")
         f.close()
+    return tmp_file
 
 
 def tmp_file_write(tmp_file_name, tmp_file_data):
-    tmp_file = BaseTmpFileD + os.sep + tmp_file_name
+    #tmp_file = BaseTmpFileD + os.sep + tmp_file_name
     # print('tmpfile',tmp_file_data)
-    with open('%s' % tmp_file, 'a+', encoding="utf-8") as f:
+    with open(tmp_file_name, 'a+', encoding="utf-8") as f:
         f.write(tmp_file_data + '\n')
 
 
@@ -202,10 +204,10 @@ def tmp_file_clean(tmp_file):
 
 
 def tmpfile_rewrite(tmp_file_name, file_name):
-    if os.path.isdir(BaseFileD):
-        pass
-    else:
-        os.makedirs(BaseFileD)
+    #if os.path.isdir(BaseFileD):
+    #    pass
+    #else:
+    #    os.makedirs(BaseFileD)
     f = open(tmp_file_name, 'r', encoding="utf=8")
     f_rewrite = open(file_name, 'a+', encoding="utf=8")
     for line in f:

@@ -53,8 +53,13 @@ def commit_oracle_file(**kwargs):
     db_exec = db_exec_map[kwargs['user']][kwargs['sel_priv']]
     db_exec.commit_oracle()
     file_name = '%s_%s_%s.sql' % (kwargs['user'], kwargs['req_no'], time.strftime("%Y%m%d%H%M%S"))
-    file_dir = BaseFileD + os.sep + file_name
-    tmp_dir = BaseTmpFileD + os.sep + kwargs['tmpfilename']
+    filebasedir = BaseFileD + os.sep + time.strftime("%Y%m%d")
+    if os.path.isdir(filebasedir):
+        pass
+    else:
+        os.makedirs(filebasedir)
+    file_dir = filebasedir + os.sep + file_name
+    tmp_dir = kwargs['tmpfilename']
     if os.path.getsize(tmp_dir) != 0:
         tmpfile_rewrite(tmp_dir, file_dir)
         models.op_oracle_record.objects.create(exec_user=kwargs['user'], req_no=kwargs['req_no'],
@@ -67,18 +72,19 @@ def commit_oracle_file(**kwargs):
 def rollback_oracle_file(**kwargs):
     db_exec = db_exec_map[kwargs['user']][kwargs['sel_priv']]
     db_exec.rollback_oracle()
-    tmp_dir = BaseTmpFileD + os.sep + kwargs['tmpfilename']
+    tmp_dir = kwargs['tmpfilename']
     tmp_file_clean(tmp_dir)
 
 
 def audit_commit(**kwargs):
     # 写入auditfile中，写入mysql数据库审计表中(提交用户，需求号，sql文件路径，审核状态位,问题描述)
     auditfile = '%s_%s_%s.sql'%(kwargs['exec_user'],kwargs['audit_req'],time.strftime("%Y%m%d%H%M%S"))
-    auditfiledpath = BaseAuditFileD + os.sep + auditfile
-    if os.path.isdir(BaseAuditFileD):
+    auditfiledir = BaseAuditFileD + os.sep + time.strftime("%Y%m%d")
+    auditfiledpath = auditfiledir + os.sep + auditfile
+    if os.path.isdir(auditfiledir):
         pass
     else:
-        os.makedirs(BaseAuditFileD)
+        os.makedirs(auditfiledir)
     with open(auditfiledpath,'a+',encoding='utf-8') as f:
         #f.write('--%s \n'%kwargs['query_desc'])
         f.write(kwargs['audit_sql'])
@@ -112,7 +118,12 @@ def AUExecOracle(**kwargs):
         db_record = db_record + '数据库执行失败，事务已经全部回滚！！！'
     #执行结果写入文件和数据库中
     AuditResultfFileName = AuFileDir.split(os.sep)[len(AuFileDir.split(os.sep))-1]
-    AuditResultfFile = BaseAuditRecordFileD + os.sep + AuditResultfFileName
+    AuditResultfFDir = BaseAuditRecordFileD + os.sep + time.strftime("%Y%m%d")
+    if os.path.isdir(AuditResultfFDir):
+        pass
+    else:
+        os.makedirs(AuditResultfFDir)
+    AuditResultfFile = AuditResultfFDir + os.sep + AuditResultfFileName
     Audit_Record_write(AuditResultfFile, db_record)
     Admodels.db_audit_record.objects.filter(id=kwargs['id']).update(exec_result=AuditResultfFile)
     return db_record
@@ -122,11 +133,12 @@ def AuCommitOracle(**kwargs):
     db_exec.commit_oracle()
     AuditFile = kwargs['AuAdFileDir']
     AudifFileName = AuditFile.split(os.sep)[len(AuditFile.split(os.sep))-1]
-    FileRecord = BaseFileD + os.sep + AudifFileName
-    if os.path.isdir(BaseFileD):
+    AudFileRecDir = BaseFileD + os.sep + time.strftime("%Y%m%d")
+    FileRecord = AudFileRecDir + os.sep + AudifFileName
+    if os.path.isdir(AudFileRecDir):
         pass
     else:
-        os.makedirs(BaseFileD)
+        os.makedirs(AudFileRecDir)
     if os.path.isfile(FileRecord):
         pass
     else:
