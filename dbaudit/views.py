@@ -1,9 +1,9 @@
 from django.shortcuts import render,redirect,HttpResponse
 from bk_manage import models
-from db_code.DbexecMethod import audit_commit,AuViewSql,AUExecOracle,AURollabckOracle,AuCommitOracle
+from db_code.DbexecMethod import audit_commit,AuViewSql,AUExecOracle,AURollabckOracle,AuCommitOracle,ViewAuditText,ViewAuditResult
 from dbaudit import models as Admodels
 from db_code.op_db_file_module import db_audit_map,Oracle_op
-import json
+import json,time
 
 # Create your views here.
 
@@ -22,6 +22,7 @@ def audit_login(request):
             else:
                 response = redirect('/dbaudit/auditview')
                 request.session['AuditUsername'] = user
+                request.session['QueryRecordDate'] = time.strftime("%Y%m%d")
                 request.session.set_expiry(0)
                 return response
     else:
@@ -32,7 +33,9 @@ def audit_view(request):
     if user != None:
         if request.method == "GET":
             db_user = models.userinfo.objects.filter(username='all').get().user_priv.split(',')
-            return render(request, 'audit_view.html',{'current_user': user,'db_user':db_user})
+            CommitDate = request.session.get('QueryRecordDate', None)
+            AuComRecord = Admodels.db_audit_record.objects.filter(exec_user=user).filter(CommitDate=CommitDate).all()
+            return render(request, 'audit_view.html',{'current_user': user,'db_user':db_user,'AuComRecord':AuComRecord})
         if request.method == 'POST':
             pass
     else:
@@ -51,6 +54,32 @@ def commit_audit(request):
             query_desc = request.POST.get('query_desc',None)
             audit_commit(select_user=select_user,audit_req=audit_req,audit_sql=audit_sql,query_desc=query_desc,exec_user=user)
             return HttpResponse('提交完成')
+    else:
+        return redirect('/dbaudit/login')
+
+def User_Viewtext(request):
+    user = request.session.get('AuditUsername', None)
+    if user != None:
+        if request.method == "POST":
+            id = request.POST.get('msg_id',None)
+            AuditFileName = Admodels.db_audit_record.objects.filter(id=id).get().file_dir
+            AuditRecordText = ViewAuditText(AuditFileName)
+            AuditRecordText = AuditRecordText.split(';')
+            return HttpResponse(json.dumps(AuditRecordText))
+    else:
+        return redirect('/dbaudit/login')
+def User_ViewResult(request):
+    user = request.session.get('AuditUsername', None)
+    if user != None:
+        if request.method == "POST":
+            id = request.POST.get('msg_id', None)
+            AuditResultFileName = Admodels.db_audit_record.objects.filter(id=id).get().exec_result
+            if AuditResultFileName == '':
+                return HttpResponse(json.dumps(('提交记录待审核').split(';')))
+            else:
+                AuditResultText = ViewAuditResult(AuditResultFileName)
+                AuditResultText = AuditResultText.split(';')
+                return HttpResponse(json.dumps(AuditResultText))
     else:
         return redirect('/dbaudit/login')
 
@@ -114,7 +143,7 @@ def AUAudit_Pass(request):
             SelResult = Admodels.db_audit_record.objects.filter(id=msg_id).all()
             AuAdFileDir = SelResult.get().file_dir
             AuAdDbUser = SelResult.get().db_user
-            db_record = AUExecOracle(AuAdFileDir=AuAdFileDir,user=user,AuAdDbUser=AuAdDbUser)
+            db_record = AUExecOracle(AuAdFileDir=AuAdFileDir,user=user,AuAdDbUser=AuAdDbUser,id=msg_id)
             db_record = db_record.split(';')
             return HttpResponse(json.dumps(db_record))
 
@@ -144,7 +173,8 @@ def AUAudit_commit(request):
             AuAdFileDir = SelResult.get().file_dir
             AuAdDbUser = SelResult.get().db_user
             AuAdReqNo = SelResult.get().req_no
-            ret_data = AuCommitOracle(AuAdFileDir=AuAdFileDir,AuAdDbUser=AuAdDbUser,AuAdReqNo=AuAdReqNo,user=user,id=msg_id)
+            AuAdExecResultF = SelResult.get().exec_result
+            ret_data = AuCommitOracle(AuAdFileDir=AuAdFileDir,AuAdDbUser=AuAdDbUser,AuAdReqNo=AuAdReqNo,user=user,id=msg_id,AuAdExecResultF=AuAdExecResultF)
             return HttpResponse(ret_data)
     else:
         return redirect('/dbaudit/AUlogin')
@@ -157,7 +187,18 @@ def AUAudit_rollback(request):
         elif request.method == "POST":
             msg_id = request.POST.get('msg_id', None)
             db_user = Admodels.db_audit_record.objects.filter(id=msg_id).get().db_user
-            ret_data = AURollabckOracle(user,db_user)
+            AuAdExecResultF = Admodels.db_audit_record.objects.filter(id=msg_id).get().exec_result
+            ret_data = AURollabckOracle(user,db_user,AuAdExecResultF)
             return HttpResponse(ret_data)
     else:
         return redirect('/dbaudit/AUlogin')
+
+def Query_RecordDate(request):
+    user = request.session.get('AuditUsername', None)
+    if user != None:
+        if request.method == "POST":
+            QueryDate = request.POST.get('QueryDate',None)
+            request.session['QueryRecordDate'] = QueryDate
+            return HttpResponse('')
+    else:
+        return redirect('/dbaudit/auditview')

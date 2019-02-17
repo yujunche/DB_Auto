@@ -26,15 +26,19 @@
     <table class="table  table-hover" style="font-size: 17px">
         <tr>
             <td>id</td>
-            <td>exec_user</td>
-            <td>req_no</td>
+            <td>提交用户</td>
+            <td>需求号</td>
             <!--
             <td>file_dir</td>
+            <td>审批状态</td>
             -->
-            <td>state</td>
-            <td>DescMessage</td>
-            <td>db_user</td>
-            <td>stamp</td>
+            <td>描述信息</td>
+            <td>数据库用户</td>
+            <td>提交日期</td>
+            <td>时间戳</td>
+            <!--
+            <td>执行结果</td>
+            -->
         </tr>
         {% for msg in Admsg %}
             <tr>
@@ -43,11 +47,15 @@
                 <td>{{ msg.req_no }}</td>
                 <!--
                 <td>{{ msg.file_dir }}</td>
-                -->
                 <td>{{ msg.state }}</td>
+                -->
                 <td>{{ msg.DescMessage }}</td>
                 <td>{{ msg.db_user }}</td>
+                <td>{{ msg.CommitDate }}</td>
                 <td>{{ msg.stamp }}</td>
+                <!--
+                <td>{{ msg.exec_result }}</td>
+                -->
                 <td>
                     <input type="button" class="btn btn-primary" data-toggle="modal" data-target="#ViewSql"
                            value="查看SQL" \>
@@ -117,6 +125,7 @@
         })
     })
     $('[data-target="#ViewSql"]').click(function () {
+        $('#SqlShow').empty();
         $.ajax({
             url: '/dbaudit/AUViewSql',
             method: 'POST',
@@ -130,6 +139,7 @@
         })
     })
     $('[data-target="#ViewResult"]').click(function () {
+        $('#ResultShow').empty();
         var Aumsg = $(this).parent().siblings().eq(0).text()
         $('#ResultModal').after('<h5 class="modal-title" id="Aumsg_commit" style="display:none">'+ Aumsg +'</h5>')
         $.ajax({

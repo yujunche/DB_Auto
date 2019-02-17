@@ -83,7 +83,7 @@ def audit_commit(**kwargs):
         #f.write('--%s \n'%kwargs['query_desc'])
         f.write(kwargs['audit_sql'])
     Admodels.db_audit_record.objects.create(exec_user=kwargs['exec_user'],db_user=kwargs['select_user'],req_no=kwargs['audit_req'],
-                                            state='W',file_dir=auditfiledpath,DescMessage=kwargs['query_desc'],stamp=time.strftime("%Y%m%d%H%M"))
+                                            state='W',file_dir=auditfiledpath,DescMessage=kwargs['query_desc'],CommitDate=time.strftime("%Y%m%d"),stamp=time.strftime("%Y%m%d%H%M"))
 
 def AuViewSql(file_dir):
     with open(file_dir,'r',encoding='utf-8') as f:
@@ -110,6 +110,11 @@ def AUExecOracle(**kwargs):
     if cont_state == '1':
         db_exec.rollback_oracle()
         db_record = db_record + '数据库执行失败，事务已经全部回滚！！！'
+    #执行结果写入文件和数据库中
+    AuditResultfFileName = AuFileDir.split(os.sep)[len(AuFileDir.split(os.sep))-1]
+    AuditResultfFile = BaseAuditRecordFileD + os.sep + AuditResultfFileName
+    Audit_Record_write(AuditResultfFile, db_record)
+    Admodels.db_audit_record.objects.filter(id=kwargs['id']).update(exec_result=AuditResultfFile)
     return db_record
 
 def AuCommitOracle(**kwargs):
@@ -132,10 +137,25 @@ def AuCommitOracle(**kwargs):
         models.op_oracle_record.objects.create(exec_user=kwargs['user'], req_no=kwargs['AuAdReqNo'],
                                                stamp=time.strftime("%Y%m%d%H%M%S"), file_dir=FileRecord)
         Admodels.db_audit_record.objects.filter(id=kwargs['id']).update(state='S')
+        AuAdExecResultF = kwargs['AuAdExecResultF']
+        with open(AuAdExecResultF,'a+',encoding="utf-8") as Rf:
+            Rf.write('提交;'+ '\n')
     return '审核数据提交完成'
 
 
-def AURollabckOracle(user,db_user):
+def AURollabckOracle(user,db_user,AuAdExecResultF):
     db_exec = db_audit_map[user][db_user]
     db_exec.rollback_oracle()
+    with open(AuAdExecResultF, 'a+', encoding="utf-8") as f:
+        f.write('回滚;' + '\n')
     return '审核数据回滚完成'
+
+def ViewAuditText(ViewTextName):
+    with open(ViewTextName,'r',encoding="utf-8") as f:
+        ATRtDate = f.read()
+    return ATRtDate
+
+def ViewAuditResult(AuditResultFileName):
+    with open(AuditResultFileName,'r',encoding="utf-8") as f:
+        ARRtDate = f.read()
+    return ARRtDate

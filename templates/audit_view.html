@@ -20,24 +20,121 @@
     </div>
 </nav>
 
-<div style="font-size: 30px;height:50px;width: 30%;margin-top: 100px;display: inline-block;float: left">
-    <select style="width: 100px;height: 40px;float: right" id="select_user" name="db_user">
-        {% for row in db_user %}
-            <option value={{ row }}>{{ row }}</option>
-        {% endfor %}
-    </select>
-</div>
-<div class="form-group" style="color: white;width: 20%;height: 50px;margin-top: 100px;display: inline-block;float: left">
-    <input id="audit_req" type="text" style="width: 150px;height: 40px;margin-left: 100px" class="form-control" placeholder="需求号或缺陷号"/>
-</div>
-<div class="form-group" style="color: white;width: 50%;height: 50px;margin-top: 100px;display: inline-block;float: right" >
-    <input id="query_desc" type="text" style="width: 600px;height: 40px" class="form-control" maxlength="40" placeholder="问题描述"/>
-</div>
-<div class="form-group" style="width: 70%;height: 50%;margin: auto" >
-    <textarea id="audit_sql" class="form-control" rows="20" placeholder="输入需要提交审批的sql语句"></textarea>
-</div>
-<div class="form-group" style="margin-top: 20px;text-align: center">
-    <input class="btn btn-primary" id="commit_audit" type="button" data-loading-text="Loading..." value="提交审核"/>
+<ul id="UserAuditCommit" class="nav nav-tabs" style="font-size: 20px;">
+    <li class="active">
+		<a href="#ViewCommitRecord" data-toggle="tab" style="color: black">提交记录</a>
+	</li>
+    <li >
+		<a href="#CommitAudit" data-toggle="tab" style="color: black">提交审批</a>
+	</li>
+</ul>
+
+<div id="UserAuditCommit" class="tab-content">
+    <div class="tab-pane fade" id="CommitAudit">
+        <div style="font-size: 20px;height:50px;width: 30%;margin-top: 100px;display: inline-block;float: left">
+            <select style="width: 100px;height: 40px;float: right" id="select_user" name="db_user">
+                {% for row in db_user %}
+                    <option value={{ row }}>{{ row }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="color: white;width: 20%;height: 50px;margin-top: 100px;display: inline-block;float: left">
+            <input id="audit_req" type="text" style="width: 150px;height: 40px;margin-left: 100px" class="form-control" placeholder="需求号或缺陷号"/>
+        </div>
+        <div class="form-group" style="color: white;width: 50%;height: 50px;margin-top: 100px;display: inline-block;float: right" >
+            <input id="query_desc" type="text" style="width: 600px;height: 40px" class="form-control" maxlength="40" placeholder="问题描述"/>
+        </div>
+        <div class="form-group" style="width: 70%;height: 50%;margin: auto" >
+            <textarea id="audit_sql" class="form-control" rows="20" placeholder="输入需要提交审批的sql语句"></textarea>
+        </div>
+        <div class="form-group" style="margin-top: 20px;text-align: center">
+            <input class="btn btn-primary" id="commit_audit" type="button" data-loading-text="Loading..." value="提交审核"/>
+        </div>
+    </div>
+    <div class="tab-pane fade  in active" id="ViewCommitRecord" style="font-size: 15px">
+        <br>
+        <form class="form-inline" style="font-size: 20px">
+            <div class="form-group">
+                <label for="Commitdate">按日期查询</label>
+                <input type="text" class="form-control" id="Commitdate" placeholder="例：20180808">
+                <input type="button" class="btn btn-primary" CommitDataView="CommitDataView" value="查询"/>
+            </div>
+        </form>
+        <br>
+        <p>注：审批状态（W:待审批 F:审批不通过 S:审批通过）</p>
+        <br>
+        <div>
+            <table class="table  table-hover">
+                <tr>
+                    <td>序号</td>
+                    <td>用户名</td>
+                    <td>需求号/缺陷号</td>
+                    <td>审批状态</td>
+                    <td>描述信息</td>
+                    <td>数据库用户</td>
+                    <td>执行结果文件</td>
+                    <td>提交日期</td>
+                    <td>时间戳</td>
+                </tr>
+                {% for ComRecord in AuComRecord %}
+                    <tr>
+                        <td>{{ ComRecord.id }}</td>
+                        <td>{{ ComRecord.exec_user }}</td>
+                        <td>{{ ComRecord.req_no }}</td>
+                        <td>{{ ComRecord.state }}</td>
+                        <td>{{ ComRecord.DescMessage }}</td>
+                        <td>{{ ComRecord.db_user }}</td>
+                        <td>{{ ComRecord.exec_result }}</td>
+                        <td>{{ ComRecord.CommitDate }}</td>
+                        <td>{{ ComRecord.stamp }}</td>
+                        <td>
+                            <input type="button" class="btn btn-primary" data-toggle="modal"  data-target="#ViewComRecord" value="查看提交内容"/>
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-danger" data-toggle="modal"  data-target="#ViewExecResutl" value="查看执行结果"/>
+                        </td>
+                    </tr>
+                {% endfor %}
+
+                <!-- ViewTextModal -->
+                <div class="modal fade" id="ViewComRecord" tabindex="-1" role="dialog" aria-labelledby="ViewTextModal">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                        aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="ViewTextModal">SqlText</h4>
+                            </div>
+                            <div id="TextShow" style="font-size: 20px" class="modal-body">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ViewResultModal -->
+                <div class="modal fade" id="ViewExecResutl" tabindex="-1" role="dialog" aria-labelledby="ViewResultModal">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                        aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="ViewResultModal">SqlText</h4>
+                            </div>
+                            <div id="ResultShow" style="font-size: 20px" class="modal-body">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </table>
+        </div>
+    </div>
 </div>
 </body>
 
@@ -74,6 +171,50 @@
         else {
             location.reload()
         }
+    })
+    $('[CommitDataView="CommitDataView"]').click(function () {
+        $.ajax({
+            url: '/dbaudit/QueryRecordDate',
+            method: 'POST',
+            data: {'QueryDate':$('#Commitdate').val()},
+            success:function (data) {
+                location.reload()
+            }
+        })
+    })
+
+    $('[data-target="#ViewComRecord"]').click(function () {
+        $('#TextShow').empty();
+        $.ajax({
+            url:'/dbaudit/UserViewtext',
+            method:'POST',
+            data:{'msg_id': $(this).parent().siblings().eq(0).text()},
+            success:function (data) {
+                var RtViewText = JSON.parse(data)
+                for (var RtViewTextdata in RtViewText) {
+                    $('#TextShow').append('<p>' + RtViewText[RtViewTextdata] + '</p>')
+                }
+            }
+        })
+    })
+
+    $('[data-target="#ViewExecResutl"]').click(function () {
+        $('#ResultShow').empty()
+        $.ajax({
+            url:'/dbaudit/UserViewResult',
+            method:'POST',
+            data:{'msg_id': $(this).parent().siblings().eq(0).text()},
+            success:function (data) {
+                var RtViewResult = JSON.parse(data)
+                for (var RtViewResultdata in RtViewResult) {
+                    $('#ResultShow').append('<p>' + RtViewResult[RtViewResultdata] + '</p>')
+                }
+            }
+        })
+    })
+
+    $('[data-dismiss="modal"]').click(function () {
+        location.reload()
     })
 </script>
 

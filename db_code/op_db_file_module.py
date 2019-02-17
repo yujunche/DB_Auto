@@ -16,6 +16,7 @@ oracle_env_sid = models.oracle_db_info.objects.filter(env_info=env_info).get().e
 BaseTmpFileD = os.getcwd() + os.sep + 'tmpfile' + os.sep + time.strftime("%Y%m%d")
 BaseFileD = os.getcwd() + os.sep + 'file' + os.sep + time.strftime("%Y%m%d")
 BaseAuditFileD = os.getcwd() + os.sep + 'AuditFile' + os.sep + time.strftime("%Y%m%d")
+BaseAuditRecordFileD = os.getcwd() + os.sep + 'AuditResultFile' + os.sep + time.strftime("%Y%m%d")
 
 
 class Oracle_op(object):
@@ -191,3 +192,14 @@ def tmpfile_rewrite(tmp_file_name, file_name):
         f_rewrite.write(line)
     f.close()
     f_rewrite.close()
+
+def Audit_Record_write(AudifFileName,AuditResultRecord):
+    if os.path.isdir(BaseAuditRecordFileD):
+        pass
+    else:
+        os.makedirs(BaseAuditRecordFileD)
+    ##多次审批，每次清空文件
+    #with open(AudifFileName, 'w+', encoding="utf-8") as f:
+    #    f.truncate()
+    with open(AudifFileName,'a+',encoding="utf-8") as f:
+        f.write(AuditResultRecord)

@@ -9,6 +9,7 @@ class db_audit_record(models.Model):
     file_dir = models.CharField(max_length=100)
     state = models.CharField(max_length=1)
     DescMessage = models.CharField(max_length=130)
+    CommitDate = models.CharField(max_length=8)
     stamp = models.CharField(max_length=12)
     exec_result = models.CharField(max_length=100)
 

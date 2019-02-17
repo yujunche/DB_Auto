@@ -23,6 +23,8 @@ urlpatterns = [
     url(r'^login' ,views.audit_login),
     url(r'^auditview',views.audit_view),
     url(r'^commitaudit',views.commit_audit),
+    url(r'^UserViewtext',views.User_Viewtext),
+    url(r'^UserViewResult',views.User_ViewResult),
     url(r'^AUlogin',views.AuditUser_login),
     url(r'^dbauditview',views.AuditUser_view),
     url(r'^AUViewSql',views.AUview_sql),
@@ -30,4 +32,5 @@ urlpatterns = [
     url(r'^AUAdNopass',views.AUAudit_Nopass),
     url(r'^AUAdCommit',views.AUAudit_commit),
     url(r'^AUAdRollback',views.AUAudit_rollback),
+    url(r'^QueryRecordDate',views.Query_RecordDate),
 ]
