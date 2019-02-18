@@ -46,6 +46,11 @@ class Oracle_op(object):
             rownum = cursor.rowcount
             db_message = db_op_message + '%s行已删除' % rownum + ';' + '\n'
             return db_message
+        elif sql_input_oracle.lower().find('grant') != -1:
+            cursor.execute(sql_input_oracle)
+            db_op_message = ''
+            db_message = db_op_message + 'grant 成功' + ';' + '\n'
+            return db_message
         elif len(re.compile('create\s*table').findall(sql_input_oracle.lower())):
             cursor.execute(sql_input_oracle)
             db_op_message = ''
@@ -65,6 +70,21 @@ class Oracle_op(object):
             cursor.execute(sql_input_oracle)
             db_op_message = ''
             db_message = db_op_message + 'create index 成功' + ';' + '\n'
+            return db_message
+        elif len(re.compile('drop\s*index').findall(sql_input_oracle.lower())):
+            cursor.execute(sql_input_oracle)
+            db_op_message = ''
+            db_message = db_op_message + 'drop index 成功' + ';' + '\n'
+            return db_message
+        elif len(re.compile('create\s*unique\s*index').findall(sql_input_oracle.lower())):
+            cursor.execute(sql_input_oracle)
+            db_op_message = ''
+            db_message = db_op_message + 'create unique index 成功' + ';' + '\n'
+            return db_message
+        elif sql_input_oracle.lower().find('comment') != -1:
+            cursor.execute(sql_input_oracle)
+            db_op_message = ''
+            db_message = db_op_message + 'comment 成功' + ';' + '\n'
             return db_message
         else:
             db_op_message = ''
