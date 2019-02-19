@@ -73,7 +73,7 @@ def AuditUser_add(request):
                 return HttpResponse('用户信息不完整')
             else:
                 Auditpriv = models.userinfo.objects.filter(username='all').get().user_priv
-                Aumodels.aduit_userinfo.objects.create(username=Auditpassword,password=Auditpassword,audit_priv=Auditpriv)
+                Aumodels.aduit_userinfo.objects.create(username=Auditusername,password=Auditpassword,audit_priv=Auditpriv)
                 return HttpResponse('审计用户添加完成')
     else:
         return redirect('/bkmanage/login')
