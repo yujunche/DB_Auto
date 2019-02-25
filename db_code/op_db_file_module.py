@@ -23,8 +23,9 @@ class Oracle_op(object):
     def __init__(self, db_user_name, password):
         self.db_user_name = db_user_name
         self.password = password
+        self.dsn = '%s:%s/%s'%(oracle_env_ip,oracle_env_port,oracle_env_sid)
         self.orcl_db = cx_Oracle.connect(
-            '%s/%s@%s:%s/%s' % (self.db_user_name, self.password, oracle_env_ip, oracle_env_port, oracle_env_sid))
+            user=self.db_user_name,password=self.password,dsn=self.dsn)
 
     def exec_oracle(self, sql_input_oracle):
         cursor = self.orcl_db.cursor()

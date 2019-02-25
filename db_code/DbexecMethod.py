@@ -17,7 +17,7 @@ def generate_random_str(randomlength=16):
 
 def judge_op_type(input_sql_type, input_sql):
     if input_sql_type.lower() == 'noeaa' :
-        if input_sql.lower().find('select') != -1 or input_sql.lower().find('delete') != -1 or input_sql.lower().find('create') != -1 or input_sql.lower().find('alter') != -1 \
+        if  input_sql.lower().find('delete') != -1 or input_sql.lower().find('create') != -1 or input_sql.lower().find('alter') != -1 \
                 or input_sql.lower().find('drop') != -1 or input_sql.lower().find('grant') != -1 or input_sql.lower().find('deny') != -1 or input_sql.lower().find('revoke') != -1 \
                 or input_sql.lower().find('comment') != -1:
             return 1
