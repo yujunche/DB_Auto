@@ -5,7 +5,7 @@ from django.db import models
 class db_audit_record(models.Model):
     exec_user = models.CharField(max_length=20)
     db_user = models.CharField(max_length=10)
-    req_no = models.CharField(max_length=10)
+    req_no = models.CharField(max_length=20)
     file_dir = models.CharField(max_length=100)
     state = models.CharField(max_length=1)
     DescMessage = models.CharField(max_length=130)

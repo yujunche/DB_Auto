@@ -27,6 +27,6 @@ class oracle_db_user_info(models.Model):
 
 class op_oracle_record(models.Model):
     exec_user = models.CharField(max_length=20)
-    req_no = models.CharField(max_length=10)
+    req_no = models.CharField(max_length=20)
     stamp = models.CharField(max_length=20)
     file_dir = models.CharField(max_length=100)

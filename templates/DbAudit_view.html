@@ -132,7 +132,7 @@
             success: function (data) {
                 var RtSql = JSON.parse(data)
                 for (var returndata in RtSql) {
-                    $('#SqlShow').append('<p>' + RtSql[returndata] + '</p>')
+                    $('#SqlShow').append('<p style="white-space: pre-line" >' + RtSql[returndata] + '</p>')
                 }
             }
         })
