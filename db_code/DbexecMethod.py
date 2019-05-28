@@ -14,18 +14,49 @@ def generate_random_str(randomlength=16):
     random_str = ''.join(str_list)
     return random_str
 
+#T_PUB_RSTS csdacm,csdact，gsdpay 四组
 
 def judge_op_type(input_sql_type, input_sql):
+    judge_stat = 0
     if input_sql_type.lower() == 'noeaa' :
-        if  input_sql.lower().find('delete') != -1 or input_sql.lower().find('create') != -1 or input_sql.lower().find('alter') != -1 \
-                or input_sql.lower().find('drop') != -1 or input_sql.lower().find('grant') != -1 or input_sql.lower().find('deny') != -1 or input_sql.lower().find('revoke') != -1 \
-                or input_sql.lower().find('comment') != -1:
-            return 1
-        else:
-            return 0
+        spl_sql = input_sql.rstrip().rstrip(';').split(';')
+        for i in NotAllowExec:
+            for j in spl_sql:
+                matchResult = re.match('^\s*%s'%i,j,flags=re.IGNORECASE)
+                if matchResult != None:
+                    judge_stat = 1
+        return judge_stat
     elif input_sql_type.lower() == 'all' :
         return 0
 
+def judge_dml_ddl(input_sql):
+    dml_true = 0
+    ddl_true = 0
+    input_sql = re.sub('\n', ' ', input_sql)
+    for i in ALLTYPE:
+        input_sql = re.sub(';\s*%s'%i,'\n%s'%i,input_sql,flags=re.IGNORECASE)
+    input_sql = input_sql.rstrip().rstrip(';').splitlines()
+    for sql_type in DML:
+        for j in input_sql:
+            if re.match('^\s*%s'%sql_type,j,flags=re.IGNORECASE) != None:
+                dml_true = 1
+    for sql_type in DDL:
+        for j in input_sql:
+            if re.match('^\s*%s'%sql_type,j,flags=re.IGNORECASE) != None:
+                ddl_true = 1
+    if dml_true == 1 and ddl_true != 1:
+        return 'dml'
+    elif dml_true != 1 and ddl_true == 1:
+        return 'ddl'
+    else:
+        return 'all'
+
+def dml_sql_transform(input_sql):
+    input_sql = re.sub('\n', ' ', input_sql)
+    for i in DML:
+        input_sql = re.sub(';\s*%s'%i,'\n%s'%i,input_sql,flags=re.IGNORECASE)
+    input_sql = input_sql.rstrip().rstrip(';').splitlines()
+    return input_sql
 
 def execute_oracle_file(**kwargs):
     exec_status = judge_op_type(kwargs['input_sql_type'],kwargs['input_sql'])
@@ -33,7 +64,8 @@ def execute_oracle_file(**kwargs):
         return '输入的数据库操作语言有误，请检查输入的sql。'
     elif exec_status == 0:
         # print('exec',kwargs['input_sql'])
-        sql_batch = kwargs['input_sql'].rstrip().rstrip(';').split(';')
+        #sql_batch = kwargs['input_sql'].rstrip().rstrip(';').split(';')
+        sql_batch = dml_sql_transform(kwargs['input_sql'])
         db_exec = db_exec_map[kwargs['user']][kwargs['sel_priv']]
         db_record = ''
         for bath_exec in sql_batch:
@@ -103,30 +135,72 @@ def AUExecOracle(**kwargs):
     with open(AuFileDir,'r',encoding='utf-8') as f:
         input_sql = f.read()
     db_exec = db_audit_map[kwargs['user']][kwargs['AuAdDbUser']]
-    sql_batch = input_sql.rstrip().rstrip(';').split(';')
-    db_record = ''
-    cont_state = ''
-    for bath_exec in sql_batch:
-        try:
-            db_msg = db_exec.exec_oracle(bath_exec)
-        except cx_Oracle.DatabaseError as orcl_error_msg:
-            db_msg = str(orcl_error_msg) + ';' + '\n'
-            cont_state = '1'
-        db_record = db_record + db_msg
-    if cont_state == '1':
-        db_exec.rollback_oracle()
-        db_record = db_record + '数据库执行失败，事务已经全部回滚！！！'
-    #执行结果写入文件和数据库中
-    AuditResultfFileName = AuFileDir.split(os.sep)[len(AuFileDir.split(os.sep))-1]
-    AuditResultfFDir = BaseAuditRecordFileD + os.sep + time.strftime("%Y%m%d")
-    if os.path.isdir(AuditResultfFDir):
-        pass
-    else:
-        os.makedirs(AuditResultfFDir)
-    AuditResultfFile = AuditResultfFDir + os.sep + AuditResultfFileName
-    Audit_Record_write(AuditResultfFile, db_record)
-    Admodels.db_audit_record.objects.filter(id=kwargs['id']).update(exec_result=AuditResultfFile)
-    return db_record
+    judge_reslut = judge_dml_ddl(input_sql)
+    if judge_reslut == 'all':
+        db_record = '请将sql语句根据不同类型分别提交！;' + '\n'
+        # 执行结果写入文件和数据库中
+        AuditResultfFileName = AuFileDir.split(os.sep)[len(AuFileDir.split(os.sep)) - 1]
+        AuditResultfFDir = BaseAuditRecordFileD + os.sep + time.strftime("%Y%m%d")
+        if os.path.isdir(AuditResultfFDir):
+            pass
+        else:
+            os.makedirs(AuditResultfFDir)
+        AuditResultfFile = AuditResultfFDir + os.sep + AuditResultfFileName
+        Audit_Record_write(AuditResultfFile, db_record)
+        Admodels.db_audit_record.objects.filter(id=kwargs['id']).update(exec_result=AuditResultfFile)
+        return db_record
+    elif judge_reslut == 'dml':
+        sql_batch = dml_sql_transform(input_sql)
+        #sql_batch = input_sql.rstrip().rstrip(';').split(';')
+        db_record = ''
+        cont_state = ''
+        for bath_exec in sql_batch:
+            try:
+                db_msg = db_exec.exec_oracle(bath_exec)
+            except cx_Oracle.DatabaseError as orcl_error_msg:
+                db_msg = str(orcl_error_msg) + ';' + '\n'
+                cont_state = '1'
+            db_record = db_record + db_msg
+        if cont_state == '1':
+            db_exec.rollback_oracle()
+            db_record = db_record + '数据库执行失败，事务已经全部回滚！！！' + ';' + '\n'
+        #执行结果写入文件和数据库中
+        AuditResultfFileName = AuFileDir.split(os.sep)[len(AuFileDir.split(os.sep))-1]
+        AuditResultfFDir = BaseAuditRecordFileD + os.sep + time.strftime("%Y%m%d")
+        if os.path.isdir(AuditResultfFDir):
+            pass
+        else:
+            os.makedirs(AuditResultfFDir)
+        AuditResultfFile = AuditResultfFDir + os.sep + AuditResultfFileName
+        Audit_Record_write(AuditResultfFile, db_record)
+        Admodels.db_audit_record.objects.filter(id=kwargs['id']).update(exec_result=AuditResultfFile)
+        return db_record
+    elif judge_reslut == 'ddl':
+        #sql_batch = dml_sql_transform(input_sql)
+        sql_batch = input_sql.rstrip().rstrip(';').split(';')
+        db_record = ''
+        cont_state = ''
+        for bath_exec in sql_batch:
+            try:
+                db_msg = db_exec.exec_oracle(bath_exec)
+            except cx_Oracle.DatabaseError as orcl_error_msg:
+                db_msg = str(orcl_error_msg) + ';' + '\n'
+                cont_state = '1'
+            db_record = db_record + db_msg
+        if cont_state == '1':
+            db_exec.rollback_oracle()
+            db_record = db_record + '数据库执行失败，事务已经全部回滚！！！'
+        #执行结果写入文件和数据库中
+        AuditResultfFileName = AuFileDir.split(os.sep)[len(AuFileDir.split(os.sep))-1]
+        AuditResultfFDir = BaseAuditRecordFileD + os.sep + time.strftime("%Y%m%d")
+        if os.path.isdir(AuditResultfFDir):
+            pass
+        else:
+            os.makedirs(AuditResultfFDir)
+        AuditResultfFile = AuditResultfFDir + os.sep + AuditResultfFileName
+        Audit_Record_write(AuditResultfFile, db_record)
+        Admodels.db_audit_record.objects.filter(id=kwargs['id']).update(exec_result=AuditResultfFile)
+        return db_record
 
 def AuCommitOracle(**kwargs):
     db_exec = db_audit_map[kwargs['user']][kwargs['AuAdDbUser']]
