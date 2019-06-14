@@ -37,6 +37,7 @@ class Oracle_op(object):
 
     def exec_oracle(self, sql_input_oracle):
         cursor = self.orcl_db.cursor()
+        sql_input_oracle = sql_input_oracle.rstrip().rstrip(';')
         if sql_input_oracle.lower().find('update') != -1:
             cursor.execute(sql_input_oracle)
             db_op_message = ''
@@ -95,6 +96,10 @@ class Oracle_op(object):
             db_op_message = ''
             db_message = db_op_message + 'comment 成功' + ';' + '\n'
             return db_message
+        elif len(re.compile('^\s*--').findall(sql_input_oracle.lower())):
+            db_op_message = ''
+            db_message = db_op_message + sql_input_oracle + ';' + '\n'
+            return  db_message
         else:
             db_op_message = ''
             db_op_message = db_op_message + '输入sql有误' + ';' + '\n'

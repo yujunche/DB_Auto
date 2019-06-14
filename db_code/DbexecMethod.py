@@ -54,8 +54,9 @@ def judge_dml_ddl(input_sql):
 def dml_sql_transform(input_sql):
     input_sql = re.sub('\n', ' ', input_sql)
     for i in DML:
-        input_sql = re.sub(';\s*%s'%i,'\n%s'%i,input_sql,flags=re.IGNORECASE)
-    input_sql = input_sql.rstrip().rstrip(';').splitlines()
+        input_sql = re.sub('\s*%s'%i,'\n%s'%i,input_sql,flags=re.IGNORECASE)
+    input_sql = re.sub('--','\n--',input_sql)
+    input_sql = input_sql.lstrip().rstrip().rstrip(';').splitlines()
     return input_sql
 
 def execute_oracle_file(**kwargs):
