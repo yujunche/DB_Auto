@@ -52,10 +52,14 @@ def judge_dml_ddl(input_sql):
         return 'all'
 
 def dml_sql_transform(input_sql):
-    input_sql = re.sub('\n', ' ', input_sql)
+    input_sql = re.sub('\n\t*','\n',input_sql)
+    input_sql = re.sub('\n *','\n',input_sql)
+    input_sql = re.sub('\n', '\t ', input_sql)
     for i in DML:
-        input_sql = re.sub('\s*%s'%i,'\n%s'%i,input_sql,flags=re.IGNORECASE)
+        input_sql = re.sub(';\s*%s'%i,'\n%s'%i,input_sql,flags=re.IGNORECASE)
     input_sql = re.sub('--','\n--',input_sql)
+    for j in DML:
+        input_sql = re.sub('\t %s'%j,'\t \n%s'%j,input_sql,flags=re.IGNORECASE)
     input_sql = input_sql.lstrip().rstrip().rstrip(';').splitlines()
     return input_sql
 
