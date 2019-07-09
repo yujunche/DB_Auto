@@ -21,11 +21,11 @@ BaseAuditRecordFileD = os.getcwd() + os.sep + 'AuditResultFile'
 global DML
 DML = ['INSERT','DELETE','UPDATE']
 global DDL
-DDL = ['GRANT','CREATE','ALTER','DROP','COMMON','DENY','REVOKE']
+DDL = ['GRANT','CREATE','ALTER','DROP','COMMENT','DENY','REVOKE']
 global NotAllowExec
-NotAllowExec = ['DELETE','GRANT','CREATE','ALTER','DROP','COMMON','DENY','REVOKE']
+NotAllowExec = ['DELETE','GRANT','CREATE','ALTER','DROP','COMMENT','DENY','REVOKE']
 global  ALLTYPE
-ALLTYPE = ['INSERT','DELETE','UPDATE','GRANT','CREATE','ALTER','DROP','COMMON','DENY','REVOKE']
+ALLTYPE = ['INSERT','DELETE','UPDATE','GRANT','CREATE','ALTER','DROP','COMMENT','DENY','REVOKE']
 
 class Oracle_op(object):
     def __init__(self, db_user_name, password):
