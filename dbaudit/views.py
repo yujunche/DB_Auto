@@ -34,8 +34,13 @@ def audit_view(request):
         if request.method == "GET":
             db_user = models.userinfo.objects.filter(username='all').get().user_priv.split(',')
             CommitDate = request.session.get('QueryRecordDate', None)
-            AuComRecord = Admodels.db_audit_record.objects.filter(exec_user=user).filter(CommitDate=CommitDate).all()
-            return render(request, 'audit_view.html',{'current_user': user,'db_user':db_user,'AuComRecord':AuComRecord})
+            if user == 'op':
+                AuComRecord = Admodels.db_audit_record.objects.filter(CommitDate=CommitDate).all()
+                return render(request, 'audit_view.html',
+                              {'current_user': user, 'db_user': db_user, 'AuComRecord': AuComRecord})
+            else:
+                AuComRecord = Admodels.db_audit_record.objects.filter(exec_user=user).filter(CommitDate=CommitDate).all()
+                return render(request, 'audit_view.html',{'current_user': user,'db_user':db_user,'AuComRecord':AuComRecord})
         if request.method == 'POST':
             pass
     else:
