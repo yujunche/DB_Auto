@@ -32,6 +32,7 @@ def judge_op_type(input_sql_type, input_sql):
 def judge_dml_ddl(input_sql):
     dml_true = 0
     ddl_true = 0
+    input_sql = re.sub('--.*\n', '', input_sql)
     input_sql = re.sub('\n', ' ', input_sql)
     for i in ALLTYPE:
         input_sql = re.sub(';\s*%s'%i,'\n%s'%i,input_sql,flags=re.IGNORECASE)
@@ -250,3 +251,15 @@ def ViewAuditResult(AuditResultFileName):
     with open(AuditResultFileName,'r',encoding="utf-8") as f:
         ARRtDate = f.read()
     return ARRtDate
+
+def AU_NoPass_record(AuAdFileDir,msg_id):
+    AuditResultfFileName = AuAdFileDir.split(os.sep)[len(AuAdFileDir.split(os.sep)) - 1]
+    AuditResultfFDir = BaseAuditRecordFileD + os.sep + time.strftime("%Y%m%d")
+    if os.path.isdir(AuditResultfFDir):
+        pass
+    else:
+        os.makedirs(AuditResultfFDir)
+    AuditResultfFile = AuditResultfFDir + os.sep + AuditResultfFileName
+    Audit_Record_write(AuditResultfFile, '审批不通过，请检查提交的SQL')
+    Admodels.db_audit_record.objects.filter(id=msg_id).update(exec_result=AuditResultfFile)
+    Admodels.db_audit_record.objects.filter(id=msg_id).update(state='F')

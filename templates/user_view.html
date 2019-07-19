@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     {% include "load_bootstrap.html" %}
 </head>
-<body style="background-image: url(/static/img/7.jpg)">
+<body style="background-image: url(/static/img/6.jpg)">
 <nav class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
         <div class="navbar-header">
@@ -18,70 +18,202 @@
         </div>
     </div>
 </nav>
-<h1 style="display: inline-block;margin-left: 30%;margin-top: 50px;margin-bottom: 50px;color: white">
-    目前系统只支持DML语言中的增改操作</h1>
 
 
-<!-- ajax提交 -->
+<ul id="UserAuditCommit" class="nav nav-tabs" style="font-size: 20px;">
+    <li class="active">
+        <a href="#ViewCommitRecord" data-toggle="tab" style="color: black">提交记录</a>
+    </li>
+    <li>
+        <a href="#CommitAudit" data-toggle="tab" style="color: black">提交审批</a>
+    </li>
+    <li>
+        <a href="#ecex_sql" data-toggle="tab" style="color: black">SQL执行</a>
+    </li>
+</ul>
 
-{% csrf_token %}
-<div class="form-group" style="width: 50%;height: 50px;float: left">
-    <div style="width:15%;font-size: 30px;margin-left: 50%;float: left;color: white">选择用户</div>
-    <div style="font-size: 20px;height:30px;float: left;width: 20%;margin-left: 0">
-        <select id="select_priv" name="sel_priv">
-            {% for row in user_priv %}
-                {% if row == sel_priv %}
-                    <option value={{ row }} selected="selected" }>{{ row }}</option>
-                {% else %}
+<div id="UserAuditCommit" class="tab-content">
+    <div class="tab-pane fade" id="CommitAudit">
+        <div style="font-size: 20px;height:50px;width: 30%;margin-top: 100px;display: inline-block;float: left">
+            <select style="width: 100px;height: 40px;float: right" id="select_user" name="db_user">
+                {% for row in db_user %}
                     <option value={{ row }}>{{ row }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group"
+             style="color: white;width: 20%;height: 50px;margin-top: 100px;display: inline-block;float: left">
+            <input id="audit_req" type="text" style="width: 150px;height: 40px;margin-left: 100px" class="form-control"
+                   maxlength="18" placeholder="需求号或缺陷号"/>
+        </div>
+        <div class="form-group"
+             style="color: white;width: 50%;height: 50px;margin-top: 100px;display: inline-block;float: right">
+            <input id="query_desc" type="text" style="width: 600px;height: 40px" class="form-control" maxlength="40"
+                   placeholder="问题描述"/>
+        </div>
+        <div class="form-group" style="width: 70%;height: 50%;margin: auto">
+            <textarea id="audit_sql" class="form-control" rows="20" placeholder="输入需要提交审批的sql语句"></textarea>
+        </div>
+        <div class="form-group" style="margin-top: 20px;text-align: center">
+            <input class="btn btn-primary" id="commit_audit" type="button" data-loading-text="Loading..." value="提交审核"/>
+        </div>
     </div>
-    <div style="width:15%;height:50px;float: left;color: white;">
-        <input id="req_no" type="text" class="form-control" placeholder="需求号或缺陷号"/>
+    <div class="tab-pane fade  in active" id="ViewCommitRecord" style="font-size: 15px">
+        <br>
+        <form class="form-inline" style="font-size: 20px">
+            <div class="form-group">
+                <label for="Commitdate">按日期查询</label>
+                <input type="text" class="form-control" id="Commitdate" placeholder="例：20180808">
+                <input type="button" class="btn btn-primary" CommitDataView="CommitDataView" value="查询"/>
+            </div>
+        </form>
+        <br>
+        <p>注：审批状态（W:待审批 F:审批不通过 S:审批通过）</p>
+        <br>
+        <div>
+            <table class="table  table-hover">
+                <tr>
+                    <td>序号</td>
+                    <td>用户名</td>
+                    <td>需求号/缺陷号</td>
+                    <td>审批状态</td>
+                    <td>描述信息</td>
+                    <td>数据库用户</td>
+                    <td>执行结果文件</td>
+                    <td>提交日期</td>
+                    <td>时间戳</td>
+                </tr>
+                {% for ComRecord in AuComRecord %}
+                    <tr>
+                        <td>{{ ComRecord.id }}</td>
+                        <td>{{ ComRecord.exec_user }}</td>
+                        <td>{{ ComRecord.req_no }}</td>
+                        <td>{{ ComRecord.state }}</td>
+                        <td>{{ ComRecord.DescMessage }}</td>
+                        <td>{{ ComRecord.db_user }}</td>
+                        <td>{{ ComRecord.exec_result }}</td>
+                        <td>{{ ComRecord.CommitDate }}</td>
+                        <td>{{ ComRecord.stamp }}</td>
+                        <td>
+                            <input type="button" class="btn btn-primary" data-toggle="modal"
+                                   data-target="#ViewComRecord" value="查看提交内容"/>
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-danger" data-toggle="modal"
+                                   data-target="#ViewExecResutl" value="查看执行结果"/>
+                        </td>
+                    </tr>
+                {% endfor %}
+
+                <!-- ViewTextModal -->
+                <div class="modal fade" id="ViewComRecord" tabindex="-1" role="dialog" aria-labelledby="ViewTextModal">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                        aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="ViewTextModal">SqlText</h4>
+                            </div>
+                            <div id="TextShow" style="font-size: 20px" class="modal-body">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ViewResultModal -->
+                <div class="modal fade" id="ViewExecResutl" tabindex="-1" role="dialog"
+                     aria-labelledby="ViewResultModal">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                        aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="ViewResultModal">SqlText</h4>
+                            </div>
+                            <div id="ResultShow" style="font-size: 20px" class="modal-body">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </table>
+        </div>
     </div>
-</div>
+    <div class="tab-pane fade" id="ecex_sql">
+        <h1 style="display: inline-block;margin-left: 30%;margin-top: 50px;margin-bottom: 50px;color: black">
+            目前系统只支持DML语言中的增改操作</h1>
 
-<div class="form-group" style="width: 40%;height: 50px;float: right;">
-    <input class="btn btn-primary" id="dbexecute" type="button" value="执行" data-loading-text="Loading..."
-           style="margin-left: 0"/>
-</div>
 
-<div class="form-group" style="width: 50%;margin: auto;margin-top: 30px">
+        <!-- ajax提交 -->
+
+        {% csrf_token %}
+        <div class="form-group" style="width: 50%;height: 50px;float: left">
+            <div style="width:15%;font-size: 30px;margin-left: 50%;float: left;color: black">选择用户</div>
+            <div style="font-size: 20px;height:30px;float: left;width: 20%;margin-left: 0">
+                <select id="select_priv" name="sel_priv">
+                    {% for row in user_priv %}
+                        {% if row == sel_priv %}
+                            <option value={{ row }} selected="selected" }>{{ row }}</option>
+                        {% else %}
+                            <option value={{ row }}>{{ row }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="width:15%;height:50px;float: left;color: white;">
+                <input id="req_no" type="text" class="form-control" placeholder="需求号或缺陷号"/>
+            </div>
+        </div>
+
+        <div class="form-group" style="width: 40%;height: 50px;float: right;">
+            <input class="btn btn-primary" id="dbexecute" type="button" value="执行" data-loading-text="Loading..."
+                   style="margin-left: 0"/>
+        </div>
+
+        <div class="form-group" style="width: 50%;margin: auto;margin-top: 30px">
         <textarea id="input_sql" class="form-control" rows="10" name="input_sql" style="margin-top: 20px "
                   placeholder="输入需要执行的sql语句">{{ input_sql }}</textarea>
+        </div>
+
+        <br>
+        <br>
+        <br>
+        <br>
+
+        <div style="display: inline-block;height:50px;width: 51%;color: white;font-size: 30px;float: left;text-align: right">
+            结果输出
+        </div>
+        <div style="display: inline-block;height: 50px;width: 40%;color: white;font-size: 30px;float: right">
+            <input id="clean_data" class="btn btn-info"
+                   style="display:inline-block;background-color: #3e8f3e;float:left;"
+                   type="submit" value="清空内容"/>
+        </div>
+        <div id="returndata"
+             style="height: 200px;width: 50%;overflow: auto ;border: solid 1px white;margin: auto;font-size: 20px">
+            {#    {% for db_record in db_record %}#}
+            {#        <p style="color: red">{{ db_record }}</p>#}
+            {#    {% endfor %}#}
+
+        </div>
+        <div style="height:50px;width: 50%;float: left;margin-top: 20px">
+            <input id="dbcommit" class="btn btn-info" data-loading-text="Loading..."
+                   style="display:inline-block;background-color: #d9534f ;float:right;margin-right: 10px" type="button"
+                   value="提交"/>
+        </div>
+        <div style="height:50px;width: 50%;float: right;margin-top: 20px">
+            <input id="dbrollback" class="btn btn-danger" data-loading-text="Loading..."
+                   style="display:inline-block;float:left;background-color: #ac2925;margin-left: 10px" type="button"
+                   value="回滚"/>
+        </div>
+    </div>
 </div>
 
-<br>
-<br>
-<br>
-<br>
-
-<div style="display: inline-block;height:50px;width: 51%;color: white;font-size: 30px;float: left;text-align: right">
-    结果输出
-</div>
-<div style="display: inline-block;height: 50px;width: 40%;color: white;font-size: 30px;float: right">
-    <input id="clean_data" class="btn btn-info" style="display:inline-block;background-color: #3e8f3e;float:left;"
-           type="submit" value="清空内容"/>
-</div>
-<div id="returndata"
-     style="height: 200px;width: 50%;overflow: auto ;border: solid 1px white;margin: auto;font-size: 20px">
-    {#    {% for db_record in db_record %}#}
-    {#        <p style="color: red">{{ db_record }}</p>#}
-    {#    {% endfor %}#}
-
-</div>
-<div style="height:50px;width: 50%;float: left;margin-top: 20px">
-    <input id="dbcommit" class="btn btn-info" data-loading-text="Loading..."
-           style="display:inline-block;background-color: #d9534f ;float:right;margin-right: 10px" type="button"
-           value="提交"/>
-</div>
-<div style="height:50px;width: 50%;float: right;margin-top: 20px">
-    <input id="dbrollback" class="btn btn-danger" data-loading-text="Loading..."
-           style="display:inline-block;float:left;background-color: #ac2925;margin-left: 10px" type="button"
-           value="回滚"/>
-</div>
 
 <script>
     $(function () {
@@ -130,6 +262,84 @@
     })
     $('#clean_data').click(function () {
         $('#returndata').children().remove()
+    })
+
+    $(function () {
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader('X-CSRFtoken', $.cookie('csrftoken'));
+            }
+        })
+    })
+    $('#commit_audit').click(function () {
+        var Judge = confirm("确认提交?");
+        if (Judge == true) {
+            if ($('#select_user').val() == '' || $('#audit_req').val() == '' || $('#audit_sql').val() == '' || $('#query_desc').val() == '') {
+                alert('所有参数不能为空！')
+            }
+            else {
+                $.ajax({
+                    url: '/dbaudit/commitaudit',
+                    method: 'POST',
+                    data: {
+                        'select_user': $('#select_user').val(),
+                        'audit_req': $('#audit_req').val(),
+                        'audit_sql': $('#audit_sql').val(),
+                        'query_desc': $('#query_desc').val(),
+                    },
+                    success: function (data) {
+                        alert(data)
+                    }
+                })
+            }
+        }
+        else {
+            location.reload()
+        }
+    })
+    $('[CommitDataView="CommitDataView"]').click(function () {
+        $.ajax({
+            url: '/dbaudit/QueryRecordDate',
+            method: 'POST',
+            data: {'QueryDate': $('#Commitdate').val()},
+            success: function (data) {
+                location.reload()
+            }
+        })
+    })
+
+    $('[data-target="#ViewComRecord"]').click(function () {
+        $('#TextShow').empty();
+        $.ajax({
+            url: '/dbaudit/UserViewtext',
+            method: 'POST',
+            data: {'msg_id': $(this).parent().siblings().eq(0).text()},
+            success: function (data) {
+                var RtViewText = JSON.parse(data)
+                for (var RtViewTextdata in RtViewText) {
+                    $('#TextShow').append('<p style="white-space: pre-line">' + RtViewText[RtViewTextdata] + '</p>')
+                }
+            }
+        })
+    })
+
+    $('[data-target="#ViewExecResutl"]').click(function () {
+        $('#ResultShow').empty()
+        $.ajax({
+            url: '/dbaudit/UserViewResult',
+            method: 'POST',
+            data: {'msg_id': $(this).parent().siblings().eq(0).text()},
+            success: function (data) {
+                var RtViewResult = JSON.parse(data)
+                for (var RtViewResultdata in RtViewResult) {
+                    $('#ResultShow').append('<p>' + RtViewResult[RtViewResultdata] + '</p>')
+                }
+            }
+        })
+    })
+
+    $('[data-dismiss="modal"]').click(function () {
+        location.reload()
     })
 </script>
 </body>

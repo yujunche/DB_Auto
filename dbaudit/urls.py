@@ -20,8 +20,8 @@ from django.conf.urls import url,include
 
 from dbaudit import views
 urlpatterns = [
-    url(r'^login' ,views.audit_login),
-    url(r'^auditview',views.audit_view),
+    #url(r'^login' ,views.audit_login),
+    #url(r'^auditview',views.audit_view),
     url(r'^commitaudit',views.commit_audit),
     url(r'^UserViewtext',views.User_Viewtext),
     url(r'^UserViewResult',views.User_ViewResult),

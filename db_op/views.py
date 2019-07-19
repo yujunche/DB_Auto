@@ -7,9 +7,10 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from db_code import op_db_file_module
 from db_code import DbexecMethod
+from dbaudit import models as Admodels
 import pickle
 # from django.views.decorators.csrf import csrf_exempt,csrf_protect
-import json
+import json,time
 
 
 # from db_code import user_exec
@@ -40,6 +41,7 @@ def user_login(request):
                 tmpfilename = DbexecMethod.generate_random_str(16)
                 tmpfilename = op_db_file_module.tmp_file_create(tmpfilename)
                 request.session['tmpfilename'] = tmpfilename
+                request.session['QueryRecordDate'] = time.strftime("%Y%m%d")
                 request.session.set_expiry(0)
                 return response
     else:
@@ -53,7 +55,15 @@ def user_view(request):
     if user != None:
         if request.method == "GET":
             priv = models.userinfo.objects.filter(username=user).get().user_priv.split(',')
-            return render(request, 'user_view.html', {'user_priv': priv, 'current_user': user, })
+            CommitDate = request.session.get('QueryRecordDate', None)
+            db_user = models.userinfo.objects.filter(username='all').get().user_priv.split(',')
+            if user == 'op':
+                AuComRecord = Admodels.db_audit_record.objects.filter(CommitDate=CommitDate).all()
+                return render(request, 'user_view.html',
+                              {'user_priv': priv, 'current_user': user, 'db_user': db_user, 'AuComRecord': AuComRecord})
+            else:
+                AuComRecord = Admodels.db_audit_record.objects.filter(exec_user=user).filter(CommitDate=CommitDate).all()
+                return render(request, 'user_view.html',{'user_priv': priv,'current_user': user,'db_user':db_user,'AuComRecord':AuComRecord})
         if request.method == 'POST':
             pass
     else:

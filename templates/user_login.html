@@ -8,12 +8,6 @@
 <nav class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
         <div>
-            <form class="navbar-form navbar-left" role="search" action="/dbaudit/login" method="get">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-default">变更审核</button>
-            </form>
-        </div>
-        <div>
             <form class="navbar-form navbar-left" role="search" action="/dbaudit/AUlogin" method="get">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-default">审核用户登录</button>
