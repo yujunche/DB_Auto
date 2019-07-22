@@ -183,6 +183,7 @@ def AUExecOracle(**kwargs):
         return db_record
     elif judge_reslut == 'ddl':
         #sql_batch = dml_sql_transform(input_sql)
+        input_sql = re.sub('--.*\n', '', input_sql)
         sql_batch = input_sql.rstrip().rstrip(';').split(';')
         db_record = ''
         cont_state = ''

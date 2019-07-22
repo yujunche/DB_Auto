@@ -38,19 +38,19 @@ class Oracle_op(object):
     def exec_oracle(self, sql_input_oracle):
         cursor = self.orcl_db.cursor()
         sql_input_oracle = sql_input_oracle.rstrip().rstrip(';')
-        if sql_input_oracle.lower().find('update') != -1:
+        if  len(re.compile('^\s*update').findall(sql_input_oracle.lower())):
             cursor.execute(sql_input_oracle)
             db_op_message = ''
             rownum = cursor.rowcount
             db_message = db_op_message + '%s行已更新' % rownum + ';' + '\n'
             return db_message
-        elif sql_input_oracle.lower().find('insert') != -1:
+        elif len(re.compile('^\s*insert').findall(sql_input_oracle.lower())):
             cursor.execute(sql_input_oracle)
             db_op_message = ''
             rownum = cursor.rowcount
             db_message = db_op_message + '%s行已插入' % rownum + ';' + '\n'
             return db_message
-        elif sql_input_oracle.lower().find('delete') != -1:
+        elif len(re.compile('^\s*delete').findall(sql_input_oracle.lower())):
             cursor.execute(sql_input_oracle)
             db_op_message = ''
             rownum = cursor.rowcount
